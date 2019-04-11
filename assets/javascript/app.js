@@ -22,9 +22,6 @@ $(document).ready(function () {
         this.answerOptions = answerOptions
     }
 
-    //add question objects into array
-
-
     //post instructions and ask to start trivia
     function boardStart() {
         var col = $("<div>").addClass("col-md-12");
@@ -46,6 +43,13 @@ $(document).ready(function () {
         rowCol = addRow(col);
         $("#questionBoard").append(rowCol);
     }
+
+    //after 10 questions.
+    function endGameScoreBoard() {
+        clear();
+
+    }
+
 
     //clock start
     function clockStart() {
@@ -108,7 +112,7 @@ $(document).ready(function () {
         visibilityToggle("timeRow");
         clockStart();
         var col = $("<div>").addClass("col-md-12");
-        var head = $("<h4>").text(questionsArr[questionCount].question);
+        var head = $("<h4>").html(questionsArr[questionCount].question);
         var p1 = questionsArr[questionCount].answerOptions[0];
         var p2 = questionsArr[questionCount].answerOptions[1];
         var p3 = questionsArr[questionCount].answerOptions[2];
@@ -165,8 +169,8 @@ $(document).ready(function () {
         var col = $("<div>").addClass("col-md-12");
         var head = $("<h2>").text("Oh sorry your chose poorly!");
         var p = $("<p>").text("You've gotten: " + incorrectGuess + " wrong! better shape up!");
-        var reStateQuestion = $("<h4>").text(questionsArr[questionCount].question);
-        var pAnswer = $("<p>").text(questionsArr[questionCount].correctAnswer);
+        var reStateQuestion = $("<h4>").html(questionsArr[(questionCount - 1)].question);
+        var pAnswer = $("<p>").text(questionsArr[(questionCount - 1)].correctAnswer);
         col.append(head, p, reStateQuestion, pAnswer);
         rowCol = addRow(col);
         $("#questionBoard").append(rowCol);
@@ -174,8 +178,6 @@ $(document).ready(function () {
             getQuestion();
         }, 1000 * 10);
     })
-
-    //rotate through questions
 
     // show scoreboard ask to play again
     boardStart();
