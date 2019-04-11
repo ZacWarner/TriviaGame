@@ -1,12 +1,13 @@
 $(document).ready(function () {
 
     var intervalId;
-    var time = 30;
+    var time = 0;
     var question;
     var correctGuess = 0;
     var incorrectGuess = 0;
     var questionsArr = [];
     var questionCount = 0;
+    var thirtySecondTimer;
 
     //function because i'm tired of making rows.
     function addRow(col) {
@@ -36,25 +37,86 @@ $(document).ready(function () {
     //ran out of time!
     function timeRunOut() {
         clear();
+        clockStart(10);
+        incorrectGuess++;
         var col = $("<div>").addClass("col-md-12");
         var head = $("<h2>").text("Out of Time!");
-        var p = $("<p>").text("sry you ran out of time!");
-        col.append(head, p);
+        var p1 = $("<h3>").text("sry you ran out of time!");
+        var p2 = $("<p>").text("You've gotten: " + incorrectGuess + " wrong! better shape up!");
+        var reStateQuestion = $("<h4>").html(questionsArr[(questionCount - 1)].question);
+        var pAnswer = $("<p>").text(questionsArr[(questionCount - 1)].correctAnswer);
+        col.append(head, p1, p2, reStateQuestion, pAnswer);
         rowCol = addRow(col);
         $("#questionBoard").append(rowCol);
+        setTimeout(function () {
+            if (questionCount === 9) {
+                endGameScoreBoard();
+            }
+            else {
+                questionBoardUpdater();
+            }
+
+        }, 1000 * 10);
+
     }
 
     //after 10 questions.
     function endGameScoreBoard() {
+        console.log("end game start");
+        console.log(correctGuess);
+        console.log(incorrectGuess);
         clear();
-
+        clockStop();
+        visibilityToggle("timeRow");
+        var col = $("<div>").addClass("col-md-12");
+        var head = $("<h2>").text("Thats the game!");
+        var p1 = $("<h4>").text("Great Job! Lets see how you did!");
+        var p2 = $("<h4>").text("You got: " + correctGuess + " questions right!");
+        var p3 = $("<h4>").text("And you only missed: " + incorrectGuess + " questions!");
+        if (correctGuess > incorrectGuess) {
+            if (correctGuess > 7) {
+                var p4 = $("<p>").text("Wow you really know your movies!");
+            }
+            else {
+                var p4 = $("<p>").text("Hey " + correctGuess + " out of 10 is still a win in my book!");
+            }
+        }
+        else if (correctGuess === incorrectGuess) {
+            var p4 = $("<p>").text("Well at least you broke even. *shrug*")
+        }
+        else if (correctGuess < incorrectGuess) {
+            var p4 = $("<p>").text("I would suggest getting a Netflix subscription.");
+        }
+        var resetBtn = $("<btn>").addClass("btn m-2 btn-primary").attr("id", "reset").text("Play Again?");
+        col.append(head, p1, p2, p3, p4, resetBtn);
+        rowCol = addRow(col);
+        $("#questionBoard").append(rowCol);
     }
 
+    //reset btn fuctionality
+    $("#questionBoard").on("click", "#reset", function () {
+        clear();
+        boardStart();
+
+        incorrectGuess = 0;
+        correctGuess = 0;
+        questionCount = 0;
+    })
 
     //clock start
-    function clockStart() {
+    function clockStart(t) {
+        $("#timeRow").empty();
         clearInterval(intervalId);
-        time = 30;
+        time = t;
+        if (t === 10 || t === 5) {
+            var p1 = $("<div>").addClass("col-md-3").append($("<h5>").html("Next Question in: "));
+            var p2 = $("<div>").addClass("col-md-2 text-left").attr("id", "time");
+            $("#timeRow").append(p1, p2);
+        }
+        else {
+            var p2 = $("<div>").addClass("col-md-2 justify-content-start").attr("id", "time");
+            $("#timeRow").append(p2);
+        }
         intervalId = setInterval(clock, 1000);
     }
     //will stop the clock
@@ -64,19 +126,8 @@ $(document).ready(function () {
 
     //clock
     function clock() {
-
         time--;
-        if (time === 0) {
-            setTimeout(function () {
-                $("#time").html("<h2>" + 0 + "</h2>");
-                clockStop();
-                timeRunOut();
-            }, 100);
-
-        }
-        else {
-            $("#time").html("<h2>" + time + "</h2>");
-        }
+        $("#time").html("<h2>" + time + "</h2>");
     }
 
     //clear board
@@ -102,6 +153,7 @@ $(document).ready(function () {
                 randomAnswer(questionsArr[i].answerOptions);
             }
             console.log(questionsArr);
+            visibilityToggle("timeRow");
             questionBoardUpdater();
         });
     }
@@ -109,8 +161,11 @@ $(document).ready(function () {
     //formats questions and answers
     function questionBoardUpdater() {
         clear();
-        visibilityToggle("timeRow");
-        clockStart();
+        clockStart(30);
+        thirtySecondTimer = setTimeout(function () {
+            timeRunOut();
+        }, 1000 * 30);
+        console.log(time);
         var col = $("<div>").addClass("col-md-12");
         var head = $("<h4>").html(questionsArr[questionCount].question);
         var p1 = questionsArr[questionCount].answerOptions[0];
@@ -122,14 +177,15 @@ $(document).ready(function () {
         $("#questionBoard").append(rowCol);
         questionCount++;
         console.log(questionCount);
+
     }
 
     //randomize question order
     function randomAnswer(answerOptions) {
-        var p1 = $("<p>").text(answerOptions[0]).addClass("incorrect");
-        var p2 = $("<p>").text(answerOptions[1]).addClass("incorrect");
-        var p3 = $("<p>").text(answerOptions[2]).addClass("incorrect");
-        var p4 = $("<p>").text(answerOptions[3]).addClass("correct");
+        var p1 = $("<p>").html(answerOptions[0]).addClass("incorrect");
+        var p2 = $("<p>").html(answerOptions[1]).addClass("incorrect");
+        var p3 = $("<p>").html(answerOptions[2]).addClass("incorrect");
+        var p4 = $("<p>").html(answerOptions[3]).addClass("correct");
         answerOptions[0] = p1;
         answerOptions[1] = p2;
         answerOptions[2] = p3;
@@ -146,8 +202,8 @@ $(document).ready(function () {
     //function for correct answer
     $("#questionBoard").on("click", ".correct", function () {
         clear();
-        visibilityToggle("timeRow");
-        clockStop();
+        clearTimeout(thirtySecondTimer);
+        clockStart(5);
         correctGuess++;
         var col = $("<div>").addClass("col-md-12");
         var head = $("<h2>").text("Thats Correct!");
@@ -156,15 +212,20 @@ $(document).ready(function () {
         rowCol = addRow(col);
         $("#questionBoard").append(rowCol);
         setTimeout(function () {
-            getQuestion();
+            if (questionCount === 9) {
+                endGameScoreBoard();
+            }
+            else {
+                questionBoardUpdater();
+            }
         }, 1000 * 5);
     })
 
     //function for incorrect answer
     $("#questionBoard").on("click", ".incorrect", function () {
         clear();
-        visibilityToggle("timeRow");
-        clockStop();
+        clearTimeout(thirtySecondTimer);
+        clockStart(10);
         incorrectGuess++;
         var col = $("<div>").addClass("col-md-12");
         var head = $("<h2>").text("Oh sorry your chose poorly!");
@@ -175,7 +236,13 @@ $(document).ready(function () {
         rowCol = addRow(col);
         $("#questionBoard").append(rowCol);
         setTimeout(function () {
-            getQuestion();
+            if (questionCount === 10) {
+                endGameScoreBoard();
+            }
+            else {
+                questionBoardUpdater();
+            }
+
         }, 1000 * 10);
     })
 
