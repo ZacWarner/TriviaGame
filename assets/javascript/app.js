@@ -27,9 +27,12 @@ $(document).ready(function () {
     function boardStart() {
         var col = $("<div>").addClass("col-md-12");
         var head = $("<h4>").text("Welcome to my movie trivia game!");
-        var p = $("<p>").text("Click the button to choose the game you want to play! Heads up you only get 10 seconds to answer each question. Good Luck!");
-        var startBtn = $("<btn>").addClass("btn m-2 btn-primary").attr("id", "start").text("Movie trivia!");
-        col.append(head, p, startBtn);
+        var p = $("<p>").text("Click the button to choose the game you want to play! Heads up you only get 30 seconds to answer each question. There's 10 questions total, my favorite is the mixed difficulty. Good Luck!");
+        var startBtnEasy = $("<btn>").addClass("btn m-2 btn-primary").attr("id", "startEasy").text("Movie trivia! easy!");
+        var startBtnMedium = $("<btn>").addClass("btn m-2 btn-primary").attr("id", "startMedium").text("Movie trivia! medium");
+        var startBtnHard = $("<btn>").addClass("btn m-2 btn-primary").attr("id", "startHard").text("Movie trivia! hard");
+        var startBtnMixed = $("<btn>").addClass("btn m-2 btn-primary").attr("id", "startMixed").text("Movie trivia! mixed");
+        col.append(head, p, startBtnEasy, startBtnMedium, startBtnHard, startBtnMixed);
         rowCol = addRow(col);
         $("#questionBoard").append(rowCol);
     }
@@ -49,7 +52,7 @@ $(document).ready(function () {
         rowCol = addRow(col);
         $("#questionBoard").append(rowCol);
         setTimeout(function () {
-            if (questionCount === 9) {
+            if (questionCount === 10) {
                 endGameScoreBoard();
             }
             else {
@@ -62,12 +65,11 @@ $(document).ready(function () {
 
     //after 10 questions.
     function endGameScoreBoard() {
-        console.log("end game start");
-        console.log(correctGuess);
-        console.log(incorrectGuess);
         clear();
         clockStop();
+        $("#timeRow").attr("style", "height: 0px;")
         visibilityToggle("timeRow");
+
         var col = $("<div>").addClass("col-md-12");
         var head = $("<h2>").text("Thats the game!");
         var p1 = $("<h4>").text("Great Job! Lets see how you did!");
@@ -93,10 +95,31 @@ $(document).ready(function () {
         $("#questionBoard").append(rowCol);
     }
 
+    //creates a progress bar
+    function progressBarMaker() {
+        var prog = $("<div>").addClass("progress");
+        var progFill = $("<div>").addClass("progress-bar");
+        progFill.attr("role", "progressbar");
+        progFill.attr("aria-valuenow", "0");
+        progFill.attr("aria-valuemin", "0");
+        progFill.attr("aria-valuemax", "100");
+        prog.append(progFill);
+        $("#progressBar").append(prog);
+    }
+
+    //updates my progress bar
+    function progressBarUpdater(questionCount) {
+        prog = questionCount * 10;
+        progPerc = prog + "%";
+        $(".progress-bar").attr("style", "width: " + progPerc);
+        $(".progress-bar").attr("aria-valuenow", prog);
+    }
+
     //reset btn fuctionality
     $("#questionBoard").on("click", "#reset", function () {
         clear();
         boardStart();
+        $("#progressBar").empty();
 
         incorrectGuess = 0;
         correctGuess = 0;
@@ -110,11 +133,11 @@ $(document).ready(function () {
         time = t;
         if (t === 10 || t === 5) {
             var p1 = $("<div>").addClass("col-md-3").append($("<h5>").html("Next Question in: "));
-            var p2 = $("<div>").addClass("col-md-2 text-left").attr("id", "time");
+            var p2 = $("<div>").addClass("col-md-2 text-left text-danger").attr("id", "time");
             $("#timeRow").append(p1, p2);
         }
         else {
-            var p2 = $("<div>").addClass("col-md-2 justify-content-start").attr("id", "time");
+            var p2 = $("<div>").addClass("col-md-2 justify-content-start text-danger").attr("id", "time");
             $("#timeRow").append(p2);
         }
         intervalId = setInterval(clock, 1000);
@@ -141,9 +164,9 @@ $(document).ready(function () {
     }
 
     //get questions and answers
-    function getQuestion() {
+    function getQuestion(link) {
         $.ajax({
-            url: "https://opentdb.com/api.php?amount=10&category=11&difficulty=easy&type=multiple",
+            url: link,
             method: "GET"
         }).then(function (response) {
             for (let i = 0; i < 10; i++) {
@@ -154,6 +177,8 @@ $(document).ready(function () {
             }
             console.log(questionsArr);
             visibilityToggle("timeRow");
+            $("#timeRow").attr("style", "height: 30px;")
+            progressBarMaker();
             questionBoardUpdater();
         });
     }
@@ -165,9 +190,8 @@ $(document).ready(function () {
         thirtySecondTimer = setTimeout(function () {
             timeRunOut();
         }, 1000 * 30);
-        console.log(time);
         var col = $("<div>").addClass("col-md-12");
-        var head = $("<h4>").html(questionsArr[questionCount].question);
+        var head = $("<h4>").html(questionsArr[questionCount].question).addClass("text-success");
         var p1 = questionsArr[questionCount].answerOptions[0];
         var p2 = questionsArr[questionCount].answerOptions[1];
         var p3 = questionsArr[questionCount].answerOptions[2];
@@ -176,16 +200,17 @@ $(document).ready(function () {
         rowCol = addRow(col);
         $("#questionBoard").append(rowCol);
         questionCount++;
+        progressBarUpdater(questionCount);
         console.log(questionCount);
 
     }
 
     //randomize question order
     function randomAnswer(answerOptions) {
-        var p1 = $("<p>").html(answerOptions[0]).addClass("incorrect");
-        var p2 = $("<p>").html(answerOptions[1]).addClass("incorrect");
-        var p3 = $("<p>").html(answerOptions[2]).addClass("incorrect");
-        var p4 = $("<p>").html(answerOptions[3]).addClass("correct");
+        var p1 = $("<p>").html("<a class='text-primary'>" + answerOptions[0] + "</a>").addClass("incorrect answer");
+        var p2 = $("<p>").html("<a class='text-primary'>" + answerOptions[1] + "</a>").addClass("incorrect answer");
+        var p3 = $("<p>").html("<a class='text-primary'>" + answerOptions[2] + "</a>").addClass("incorrect answer");
+        var p4 = $("<p>").html("<a class='text-primary'>" + answerOptions[3] + "</a>").addClass("correct answer");
         answerOptions[0] = p1;
         answerOptions[1] = p2;
         answerOptions[2] = p3;
@@ -212,7 +237,7 @@ $(document).ready(function () {
         rowCol = addRow(col);
         $("#questionBoard").append(rowCol);
         setTimeout(function () {
-            if (questionCount === 9) {
+            if (questionCount === 10) {
                 endGameScoreBoard();
             }
             else {
@@ -230,8 +255,8 @@ $(document).ready(function () {
         var col = $("<div>").addClass("col-md-12");
         var head = $("<h2>").text("Oh sorry your chose poorly!");
         var p = $("<p>").text("You've gotten: " + incorrectGuess + " wrong! better shape up!");
-        var reStateQuestion = $("<h4>").html(questionsArr[(questionCount - 1)].question);
-        var pAnswer = $("<p>").text(questionsArr[(questionCount - 1)].correctAnswer);
+        var reStateQuestion = $("<h4>").html(questionsArr[(questionCount - 1)].question).addClass("text-warning");
+        var pAnswer = $("<p>").html(questionsArr[(questionCount - 1)].correctAnswer).addClass("text-warning");
         col.append(head, p, reStateQuestion, pAnswer);
         rowCol = addRow(col);
         $("#questionBoard").append(rowCol);
@@ -249,8 +274,17 @@ $(document).ready(function () {
     // show scoreboard ask to play again
     boardStart();
 
-    $("#questionBoard").on("click", "#start", function () {
-        getQuestion()
+    $("#questionBoard").on("click", "#startEasy", function () {
+        getQuestion("https://opentdb.com/api.php?amount=10&category=11&difficulty=easy&type=multiple")
+    })
+    $("#questionBoard").on("click", "#startMedium", function () {
+        getQuestion("https://opentdb.com/api.php?amount=10&category=11&difficulty=medium&type=multiple")
+    })
+    $("#questionBoard").on("click", "#startHard", function () {
+        getQuestion("https://opentdb.com/api.php?amount=10&category=11&difficulty=hard&type=multiple")
+    })
+    $("#questionBoard").on("click", "#startMixed", function () {
+        getQuestion("https://opentdb.com/api.php?amount=10&category=11&type=multiple")
     })
 
 
