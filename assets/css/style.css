@@ -8,6 +8,7 @@ body {
     background-color: white;
 }
 
-a:hover {
+.answer:hover {
     text-decoration: underline;
+    cursor: pointer;
   }

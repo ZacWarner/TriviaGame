@@ -24,6 +24,7 @@ $(document).ready(function () {
     }
 
     //post instructions and ask to start trivia
+    //main menu screen
     function boardStart() {
         var col = $("<div>").addClass("col-md-12");
         var head = $("<h4>").text("Welcome to my movie trivia game!");
@@ -38,6 +39,7 @@ $(document).ready(function () {
     }
 
     //ran out of time!
+    //the screen for when you time out.
     function timeRunOut() {
         clear();
         clockStart(10);
@@ -64,6 +66,7 @@ $(document).ready(function () {
     }
 
     //after 10 questions.
+    //end game screen
     function endGameScoreBoard() {
         clear();
         clockStop();
@@ -75,6 +78,7 @@ $(document).ready(function () {
         var p1 = $("<h4>").text("Great Job! Lets see how you did!");
         var p2 = $("<h4>").text("You got: " + correctGuess + " questions right!");
         var p3 = $("<h4>").text("And you only missed: " + incorrectGuess + " questions!");
+        //cheecky messages for how you do.
         if (correctGuess > incorrectGuess) {
             if (correctGuess > 7) {
                 var p4 = $("<p>").text("Wow you really know your movies!");
@@ -107,7 +111,7 @@ $(document).ready(function () {
         $("#progressBar").append(prog);
     }
 
-    //updates my progress bar
+    //updates my progress bar based off question count
     function progressBarUpdater(questionCount) {
         prog = questionCount * 10;
         progPerc = prog + "%";
@@ -126,11 +130,12 @@ $(document).ready(function () {
         questionCount = 0;
     })
 
-    //clock start
+    //clock start takes how many seconds you want it to run for
     function clockStart(t) {
         $("#timeRow").empty();
         clearInterval(intervalId);
         time = t;
+        //this will say next question for the score boards.
         if (t === 10 || t === 5) {
             var p1 = $("<div>").addClass("col-md-3").append($("<h5>").html("Next Question in: "));
             var p2 = $("<div>").addClass("col-md-2 text-left text-danger").attr("id", "time");
@@ -164,6 +169,7 @@ $(document).ready(function () {
     }
 
     //get questions and answers
+    //also starts the game.
     function getQuestion(link) {
         $.ajax({
             url: link,
@@ -207,6 +213,7 @@ $(document).ready(function () {
 
     //randomize question order
     function randomAnswer(answerOptions) {
+        //I made them links to give them a hover over effect
         var p1 = $("<p>").html("<a class='text-primary'>" + answerOptions[0] + "</a>").addClass("incorrect answer");
         var p2 = $("<p>").html("<a class='text-primary'>" + answerOptions[1] + "</a>").addClass("incorrect answer");
         var p3 = $("<p>").html("<a class='text-primary'>" + answerOptions[2] + "</a>").addClass("incorrect answer");
@@ -274,6 +281,7 @@ $(document).ready(function () {
     // show scoreboard ask to play again
     boardStart();
 
+    //these will pass the different links for difficulties of questions from api.
     $("#questionBoard").on("click", "#startEasy", function () {
         getQuestion("https://opentdb.com/api.php?amount=10&category=11&difficulty=easy&type=multiple")
     })
